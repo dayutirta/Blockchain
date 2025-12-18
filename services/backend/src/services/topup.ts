@@ -389,7 +389,7 @@ export async function payTopup(
     const fileContent = fs.readFileSync(absoluteFilePath);
 
     const boundary = "--------------------------" + Date.now().toString(16);
-    let formParts = [];
+    const formParts: Buffer[] = [];
 
     formParts.push(
       Buffer.from(
@@ -419,7 +419,7 @@ export async function payTopup(
       Buffer.from(`\r\n--${boundary}--\r\n`)
     );
 
-    const formData = Buffer.concat(formParts);
+    const formData = Buffer.concat(formParts as unknown as Uint8Array[]);
 
     const walletServiceUrl = process.env.WALLET_URL || "http://localhost:3001";
     await axios.post(`${walletServiceUrl}/topup/create`, formData, {
@@ -493,7 +493,7 @@ export async function accWithdrawSaldo(
 
     const boundary = "--------------------------" + Date.now().toString(16);
 
-    let formParts = [];
+    const formParts: Buffer[] = [];
 
     Object.entries(body).forEach(([key, value]) => {
       if (key !== "bukti_pembayaran") {
@@ -514,7 +514,7 @@ export async function accWithdrawSaldo(
       Buffer.from(`\r\n--${boundary}--\r\n`)
     );
 
-    const formData = Buffer.concat(formParts);
+    const formData = Buffer.concat(formParts as unknown as Uint8Array[]);
 
     const response = await axios.put(
       `${walletServiceUrl}/topup/withdraw/${id}`,
@@ -558,23 +558,30 @@ export async function paySimpananWajib(
   };
 }
 
-export async function accSimpananWajib(
-  id: string
-): Promise<{ message: string }> {
-  const topup = await db
-    .update(TopupTable)
-    .set({ status: "SUKSES", updated_at: new Date() })
-    .where(eq(TopupTable.id, id))
-    .returning({ id_wallet: TopupTable.id_wallet, nominal: TopupTable.nominal })
-    .execute();
-  const wallet = await getWalletById(topup[0].id_wallet);
-  await db
-    .update(WalletTable)
-    .set({ saldo: wallet.saldo + topup[0].nominal, updated_at: new Date() })
-    .where(eq(WalletTable.id, topup[0].id_wallet))
-    .execute();
+export async function accSimpanan(id: string): Promise<{ message: string }> {
+  try {
+    console.log("Processing accSimpanan for ID:", id);
 
-  return { message: "Simpanan Wajib has been confirmed" };
+    // Update status of the corresponding topup record to SUKSES
+    const updated = await db
+      .update(TopupTable)
+      .set({ status: "SUKSES", updated_at: new Date() })
+      .where(eq(TopupTable.id, id))
+      .returning({ id: TopupTable.id, nominal: TopupTable.nominal })
+      .execute();
+
+    if (!updated || updated.length === 0) {
+      const error = new Error("Simpanan not found");
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    console.log("Simpanan updated successfully:", updated);
+    return { message: "Simpanan has been confirmed" };
+  } catch (error) {
+    console.error("Error in accSimpanan:", error);
+    throw error;
+  }
 }
 
 export async function getBagianPemilikPelaksana(search?: string) {

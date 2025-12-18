@@ -1,5 +1,4 @@
 import {
-  accSimpananWajib,
   accTopup,
   accWithdrawSaldo,
   getAllTopUp,
@@ -16,6 +15,7 @@ import {
   getKasKoperasi,
   formatGetTopupByUserId,
   formatGetAllTopup,
+  accSimpanan,
 } from "../services/topup.js";
 import { Request, Response } from "express";
 import axios from "axios";
@@ -183,11 +183,26 @@ export const payTopupHandler = async (req: Request, res: Response) => {
 
 export const accTopupHandler = async (req: Request, res: Response) => {
   try {
-    await accTopup(req.body.id);
-    return res.status(200).json({ message: "Topup has been approved" });
+    const { id, type } = req.body;
+    console.log("Received request for accTopupHandler:", { id, type }); // Tambahkan logging untuk memeriksa data yang diterima
+
+    if (!id || !type) {
+      return res.status(400).json({ message: "Missing required parameters: id or type" });
+    }
+
+    if (type === "topup") {
+      await accTopup(id);
+    } else if (type === "simpanan") {
+      await accSimpanan(id);
+    } else {
+      return res.status(400).json({ message: "Invalid type" });
+    }
+
+    return res.status(200).json({ message: "Payment has been approved" });
   } catch (error: any) {
+    console.error("Error in accTopupHandler:", error);
     const statusCode = error.statusCode || 500;
-    const message = error.message || "Failed to approve topup";
+    const message = error.message || "Failed to approve payment";
     res.status(statusCode).json({ message });
   }
 };
@@ -216,18 +231,20 @@ export const accWithdrawSaldoHandler = async (req: Request, res: Response) => {
 
 export const paySimpananWajibHandler = async (req: Request, res: Response) => {
   try {
+    console.log("Received request for paySimpananWajibHandler:", req.body); // Tambahkan logging untuk memeriksa data yang diterima
     await paySimpananWajib(req.user.id, req.body);
     return res.status(201).json({ message: "Simpanan Wajib created, awaiting payment confirmation" });
   } catch (error: any) {
+    console.error("Error in paySimpananWajibHandler:", error);
     const statusCode = error.statusCode || 500;
-    const message = error.message || "Failed to create simpanan wajib";
+    const message = error.message || "Failed to create Simpanan Wajib";
     res.status(statusCode).json({ message });
   }
 };
 
 export const accSimpananWajibHandler = async (req: Request, res: Response) => {
   try {
-    await accSimpananWajib(req.body.id);
+    await accSimpanan(req.body.id);
     return res.status(200).json({ message: "Simpanan Wajib has been approved" });
   } catch (error: any) {
     const statusCode = error.statusCode || 500;
@@ -258,6 +275,7 @@ export const payBagianPemilikPelaksanaHandler = async (req: Request, res: Respon
     res.status(statusCode).json({ message });
   }
 };
+
 export const updateWalletByIdHandler = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

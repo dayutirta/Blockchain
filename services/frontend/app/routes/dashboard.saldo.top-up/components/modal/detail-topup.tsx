@@ -1,3 +1,4 @@
+import React from "react";
 import { EyeIcon, FileText } from "lucide-react";
 import { ClientOnly } from "remix-utils/client-only";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ interface DetailTopUpModalProps {
 export default function DetailTopUpModal({ data }: DetailTopUpModalProps) {
   const { mutateAsync } = useUpdateTopUpById();
   const { mutateAsync: upgradeMember } = useAccUpgradeMember();
+  const [open, setOpen] = React.useState(false);
   const handleSubmit = async () => {
     try {
       if (data.topup.jenis === "UPGRADE USER") {
@@ -38,6 +40,7 @@ export default function DetailTopUpModal({ data }: DetailTopUpModalProps) {
       }
       await mutateAsync({ id: data.topup.id });
       toast.success("Status top up berhasil diubah");
+      setOpen(false);
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -45,7 +48,7 @@ export default function DetailTopUpModal({ data }: DetailTopUpModalProps) {
     }
   };
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm">
           <EyeIcon className="h-5 w-5" />
@@ -142,7 +145,7 @@ export default function DetailTopUpModal({ data }: DetailTopUpModalProps) {
             </div>
           )}
         </ClientOnly>
-        <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-4">
           <DialogClose asChild>
             <Button variant="destructive">Batal</Button>
           </DialogClose>

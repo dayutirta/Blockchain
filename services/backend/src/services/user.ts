@@ -339,7 +339,7 @@ export async function upgradeUserToPlatinum(
 
     const boundary = '--------------------------' + Date.now().toString(16);
     
-    let formParts = [];
+    const formParts: Buffer[] = [];
     
     formParts.push(
       Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="id_wallet"\r\n\r\n${walletSaldo}\r\n`),
@@ -359,7 +359,7 @@ export async function upgradeUserToPlatinum(
       Buffer.from(`\r\n--${boundary}--\r\n`)
     );
 
-    const formData = Buffer.concat(formParts);
+    const formData = Buffer.concat(formParts as unknown as Uint8Array[]);
 
     const createTopup = await axios.post(
       `${walletUrl}/topup/create`,

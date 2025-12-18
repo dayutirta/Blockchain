@@ -104,9 +104,9 @@ app.use("/history-project-wallet", historyProjectWalletRouter);
 app.use("/history-project", historyProjectRouter);
 app.use("/transaction", transactionRouter);
 
-const swaggerDocument = require("../../../api-docs/swagger-output.json");
+// const swaggerDocument = require("../../../api-docs/swagger-output.json");
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Add this error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

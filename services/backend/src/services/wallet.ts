@@ -29,12 +29,14 @@ export async function getWalletPokokByUserId(id_user: string) {
 }
 
 export async function getWalletWajibByUserId(id_user: string) {
+  console.log("Fetching Wallet Wajib for User ID:", id_user); // Tambahkan logging untuk memeriksa ID pengguna
   const wallet = await db
     .select()
     .from(WalletTable)
     .where(and(eq(WalletTable.id_user, id_user), eq(WalletTable.jenis_wallet, "SIMPANAN WAJIB")))
     .limit(1)
     .execute();
+  console.log("Query Result for Wallet Wajib:", wallet); // Log hasil query
   if (!wallet[0]) {
     const error = new Error("Wallet wajib not found");
     (error as any).statusCode = 404;

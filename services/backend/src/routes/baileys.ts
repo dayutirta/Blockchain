@@ -1,11 +1,20 @@
-// routes/whatsapp.ts
 import express from "express";
-import { getQRCodeHandler } from "../controllers/baileys.js";
+import { 
+  getQRCodeHandler, 
+  forceResetHandler,
+  getConnectionStatusHandler 
+} from "../controllers/baileys.js";
 import { validateToken, adminOnly } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// Endpoint to get the QR code
-router.get("/qr-code", validateToken, adminOnly,getQRCodeHandler);
+// Get QR code for WhatsApp connection
+router.get("/qr-code", validateToken, adminOnly, getQRCodeHandler);
+
+// Force reset connection and generate new QR code
+router.post("/reset", validateToken, adminOnly, forceResetHandler);
+
+// Get connection status
+router.get("/status", validateToken, adminOnly, getConnectionStatusHandler);
 
 export default router;

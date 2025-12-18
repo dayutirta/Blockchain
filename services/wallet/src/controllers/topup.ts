@@ -79,9 +79,11 @@ export const deleteTopupByIdHandler = async (req: Request, res: Response) => {
 export const accTopupHandler = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    console.log("Received request to accept top-up with ID:", id);
     await topupService.accTopUp(id);
     return res.status(200).json({ message: "Topup accepted" });
   } catch (error: any) {
+    console.error("Error in accTopupHandler:", error);
     const statusCode = error.statusCode || 500;
     const message = error.message || "Internal Server Error";
     res.status(statusCode).json({ message });

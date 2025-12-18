@@ -59,14 +59,18 @@ export async function getWithdrawSaldo() {
 }
 
 export async function accTopUp(id: string) {
+  console.log("Processing top-up acceptance for ID:", id);
   const data = await getTopupById(id);
   if (data[0].topup.status === "MENUNGGU KONFIRMASI") {
+    console.log("Top-up status is pending confirmation. Proceeding with acceptance.");
     await db.update(TopupTable).set({ status: "SUKSES" }).where(eq(TopupTable.id, id)).execute();
     const wallet = await getWalletById(data[0].topup.id_wallet);
+    console.log("Updating wallet balance. Current balance:", wallet.saldo, "Adding:", data[0].topup.nominal);
     await updateWalletById({ saldo: wallet.saldo + data[0].topup.nominal }, data[0].topup.id_wallet);
   } else {
     const error = new Error("Topup already approved");
     (error as any).statusCode = 400;
+    console.error("Error in accTopUp:", error);
     throw error;
   }
 }
